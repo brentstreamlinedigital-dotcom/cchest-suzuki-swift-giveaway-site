@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CCEC 75th Anniversary - Suzuki Swift Raffle</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+
+<body>
+  <!-- Navigation Header -->
+  <header>
+    <div class="container nav-container">
+      <a href="/" class="logo-link">
+        <div class="logo-wrapper">
+          <img src="/image.png" alt="Community Chest Logo" class="logo-img" />
+          <div class="logo-text">
+            <span class="logo-title">Community Chest</span>
+            <span class="logo-subtitle">Eastern Cape • 75 Years</span>
+          </div>
+        </div>
+      </a>
+      <nav class="nav-links">
+        <a href="#about">About</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#tickets" class="btn btn-primary" style="padding: 8px 18px; color: white;">Get Tickets</a>
+        <a href="/draw.html" class="draw-back-link" style="font-weight: 600;">Live Draw Panel &rarr;</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section" id="about">
+    <div class="container hero-grid">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+            style="margin-right: 4px;">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+          </svg>
+          75th Anniversary Celebration Raffle
+        </div>
+        <h1 class="hero-title">Win a Brand New <span>Suzuki Swift</span></h1>
+        <p class="hero-description">
+          Celebrate 75 years of community upliftment with the Community Chest of the Eastern Cape. Purchase a ticket
+          today to support local charities and stand a chance to drive away in a stunning new Suzuki Swift!
+        </p>
+        <div class="hero-cta-group">
+          <a href="#tickets" class="btn btn-primary">Enter Raffle Now</a>
+          <a href="#how-it-works" class="btn btn-secondary">See How It Works</a>
+        </div>
+      </div>
+      <div class="hero-visuals">
+        <div class="car-display-container">
+          <div class="car-shadow-glow"></div>
+          <div class="anniversary-badge-huge">
+            <span class="num">75</span>
+            <span class="label">Years</span>
+          </div>
+          <img src="/suzuki-swift.png" alt="Sleek Red Suzuki Swift" class="mock-car-image" id="swift-car-img" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Banner -->
+  <div class="container" style="position: relative; z-index: 10;">
+    <div class="stats-banner">
+      <div class="stats-grid">
+        <div class="stat-item">
+          <span class="stat-number">R100</span>
+          <span class="stat-label">Per Ticket Entry</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">8</span>
+          <span class="stat-label">Monthly Finalists</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">1 in 8</span>
+          <span class="stat-label">Chance of Winning Car</span>
+        </div>
+        <div class="stat-item" style="border: none;">
+          <span class="stat-number" id="stats-total-entries">14,820</span>
+          <span class="stat-label">Tickets Sold</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ticket Purchase Section -->
+  <section class="ticket-section" id="tickets">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Select Your Ticket Package</h2>
+        <p class="section-subtitle">Choose one of our celebratory bundles to receive bonus entries and increase your
+          chances of winning!</p>
+      </div>
+
+      <div class="ticket-grid">
+        <!-- Left side: Bundle selector -->
+        <div class="bundles-container">
+          <!-- Bundle 1 -->
+          <div class="bundle-card active" data-qty="1" data-price="100">
+            <div class="bundle-details">
+              <div class="bundle-checkbox"></div>
+              <div class="bundle-info">
+                <span class="bundle-name">Single Entry</span>
+                <span class="bundle-desc">1 Raffle Ticket entry</span>
+              </div>
+            </div>
+            <div class="bundle-price-group">
+              <span class="bundle-price">R100</span>
+            </div>
+          </div>
+
+          <!-- Bundle 2 -->
+          <div class="bundle-card popular" data-qty="3" data-price="250">
+            <div class="popular-badge">Best Value</div>
+            <div class="bundle-details">
+              <div class="bundle-checkbox"></div>
+              <div class="bundle-info">
+                <span class="bundle-name">Anniversary Pack</span>
+                <span class="bundle-desc">3 Raffle Tickets (Save R50)</span>
+              </div>
+            </div>
+            <div class="bundle-price-group">
+              <span class="bundle-price">R250</span>
+              <div class="bundle-discount">Save R50</div>
+            </div>
+          </div>
+
+          <!-- Bundle 3 -->
+          <div class="bundle-card" data-qty="6" data-price="500">
+            <div class="bundle-details">
+              <div class="bundle-checkbox"></div>
+              <div class="bundle-info">
+                <span class="bundle-name">Celebration Bundle</span>
+                <span class="bundle-desc">6 Raffle Tickets (Buy 5, Get 1 FREE)</span>
+              </div>
+            </div>
+            <div class="bundle-price-group">
+              <span class="bundle-price">R500</span>
+              <div class="bundle-discount">Save R100</div>
+            </div>
+          </div>
+
+          <!-- Custom Quantity option -->
+          <div class="custom-qty-wrapper" id="custom-qty-row">
+            <div class="bundle-info">
+              <span class="bundle-name">Custom Ticket Amount</span>
+              <span class="bundle-desc">R100 per ticket</span>
+            </div>
+            <div class="qty-control">
+              <button class="qty-btn" id="qty-minus">-</button>
+              <span class="qty-val" id="qty-value">1</span>
+              <button class="qty-btn" id="qty-plus">+</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right side: Checkout Sticky Summary -->
+        <div class="checkout-summary-card">
+          <div class="summary-header">
+            <h3 class="summary-title">Order Summary</h3>
+          </div>
+          <div class="summary-details-row">
+            <span>Ticket Package</span>
+            <span id="summary-package-name">Single Entry</span>
+          </div>
+          <div class="summary-details-row">
+            <span>Number of Entries</span>
+            <span id="summary-ticket-count">1 Ticket</span>
+          </div>
+          <div class="summary-details-row" id="summary-discount-row" style="display: none; color: var(--ccec-red);">
+            <span>Anniversary Discount</span>
+            <span id="summary-discount-val">-R0</span>
+          </div>
+          <div class="summary-total-row">
+            <span class="total-label">Total Amount</span>
+            <span class="total-price" id="summary-total-price">R100</span>
+          </div>
+
+          <button class="btn btn-primary" id="checkout-btn" style="width: 100%; padding: 16px;">Proceed to Secure
+            Payment &rarr;</button>
+
+          <div class="trust-badge-row">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              style="margin-top: -2px;">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            Secured Mock Payment via PayFast / Ozow
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section class="journey-section" id="how-it-works">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">The Journey to the Suzuki Swift</h2>
+        <p class="section-subtitle">Here is exactly how the raffle operates, from buying your ticket to the final
+          live-draw event.</p>
+      </div>
+
+      <div class="journey-timeline">
+        <!-- Step 1 -->
+        <div class="timeline-step">
+          <div class="timeline-card">
+            <div class="step-num">Step 1</div>
+            <h3 class="step-title">Get Registered</h3>
+            <p class="step-desc">Purchase a ticket package securely on this website. You'll receive your electronic
+              entry numbers instantly via email confirmation.</p>
+          </div>
+          <div class="timeline-spacer"></div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="timeline-step">
+          <div class="timeline-spacer"></div>
+          <div class="timeline-card">
+            <div class="step-num">Step 2</div>
+            <h3 class="step-title">Monthly Finalists Drawn</h3>
+            <p class="step-desc">Once a month, for 8 months, one winner is drawn using a secure computer-based random
+              engine. These 8 finalists are guaranteed a prize and are invited to the final event.</p>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="timeline-step">
+          <div class="timeline-card">
+            <div class="step-num">Step 3</div>
+            <h3 class="step-title">The Grand Key Event</h3>
+            <p class="step-desc">At the 75th Anniversary Gala, all 8 finalists assemble on stage. Eight hats are placed
+              on a table, each containing a car key. Only one key starts the brand new Suzuki Swift.</p>
+          </div>
+          <div class="timeline-spacer"></div>
+        </div>
+
+        <!-- Step 4 (Special) -->
+        <div class="timeline-step special">
+          <div class="timeline-spacer"></div>
+          <div class="timeline-card" style="border: 2px solid var(--ccec-red); box-shadow: 0 0 25px rgba(224, 26, 34, 0.3);">
+            <div class="step-num">Step 4</div>
+            <h3 class="step-title">Starting the Swift</h3>
+            <p class="step-desc">Each finalist selects a hat in turn and tries their key in the ignition. The finalist
+              whose key successfully starts the engine wins and drives home in the Suzuki Swift!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container footer-grid">
+      <div>
+        <div class="logo-wrapper">
+          <img src="/image.png" alt="Community Chest Logo" class="logo-img" />
+          <div class="logo-text">
+            <span class="logo-title" style="color: white;">Community Chest</span>
+            <span class="logo-subtitle">Eastern Cape</span>
+          </div>
+        </div>
+        <p class="footer-col-desc" style="margin-bottom: 24px;">
+          Empowering communities through education, healthcare, skills development and relief programmes. We partner with donors to fund trusted NGOs and create sustainable, measurable impact across Nelson Mandela Bay and the Eastern Cape.
+        </p>
+        <ul class="footer-links" style="color: var(--text-muted); font-size: 14px; line-height: 1.8; list-style: none;">
+          <li style="margin-bottom: 8px; display: flex; align-items: flex-start; gap: 8px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--ccec-red); flex-shrink: 0; margin-top: 4px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span>39 Heugh Road, Walmer, Port Elizabeth</span>
+          </li>
+          <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--ccec-red); flex-shrink: 0;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <span>+27 41 582 1592</span>
+          </li>
+          <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--ccec-red); flex-shrink: 0;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <a href="mailto:info@cchestpe.org.za" style="color: var(--text-muted); text-decoration: none;">info@cchestpe.org.za</a>
+          </li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="footer-col-title">Quick Links</h3>
+        <ul class="footer-links">
+          <li><a href="#about">About Raffle</a></li>
+          <li><a href="#tickets">Buy Tickets</a></li>
+          <li><a href="#how-it-works">How It Works</a></li>
+          <li><a href="/draw.html">Live Draw Visualizer</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="footer-col-title">Raffle Details</h3>
+        <ul class="footer-links" style="color: var(--text-muted); font-size: 14px; line-height: 1.8;">
+          <li>Ticket Price: R100</li>
+          <li>License No: CCEC-75-RAF</li>
+          <li>Draw Venue: Port Elizabeth Gala Hall</li>
+          <li>All proceeds support CCEC community projects.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      <span>&copy; 2026 Community Chest of the Eastern Cape. All rights reserved.</span>
+      <span>Prepared by Streamline Digital Solutions</span>
+    </div>
+  </footer>
+
+  <!-- Checkout Modal -->
+  <div class="modal-overlay" id="checkout-modal">
+    <div class="modal-content">
+      <button class="modal-close" id="close-checkout">&times;</button>
+      <div class="modal-header-section">
+        <h3 class="modal-main-title">Secure Checkout</h3>
+        <p class="modal-sub">You are buying <strong id="modal-tickets-label">1 ticket</strong> for <strong
+            id="modal-cost-label">R100</strong></p>
+      </div>
+
+      <form id="payment-form" onsubmit="return false;">
+        <div class="form-group">
+          <label class="form-label" for="pay-name">Full Name</label>
+          <input class="form-input" id="pay-name" type="text" placeholder="John Doe" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="pay-email">Email Address</label>
+          <input class="form-input" id="pay-email" type="email" placeholder="john@example.com" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="pay-phone">Phone Number</label>
+          <input class="form-input" id="pay-phone" type="tel" placeholder="082 123 4567" required />
+        </div>
+
+        <!-- Mock Card Details -->
+        <div class="form-group" style="border-top: 1px solid var(--border-color); padding-top: 20px; margin-top: 20px;">
+          <label class="form-label">Payment Card Information</label>
+          <input class="form-input" type="text" placeholder="4000 1234 5678 9010" style="margin-bottom: 12px;"
+            required />
+          <div class="payment-row-grid">
+            <input class="form-input" type="text" placeholder="MM/YY" required />
+            <input class="form-input" type="password" placeholder="CVC" maxlength="3" required />
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="submit-payment-btn" style="width: 100%; margin-top: 10px;">Pay
+          Securely Now</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Success Modal -->
+  <div class="modal-overlay" id="success-modal">
+    <div class="modal-content" style="text-align: center;">
+      <button class="modal-close" id="close-success">&times;</button>
+      <div class="success-icon-container">✓</div>
+      <h3 class="modal-main-title" style="color: #10b981;">Payment Successful!</h3>
+      <p class="modal-sub">Thank you for supporting CCEC. Your tickets have been registered.</p>
+
+      <div class="receipt-box">
+        <div class="receipt-row">
+          <span>Customer Name</span>
+          <span id="receipt-name">John Doe</span>
+        </div>
+        <div class="receipt-row">
+          <span>Ticket Quantity</span>
+          <span id="receipt-qty">1 Entry</span>
+        </div>
+        <div class="receipt-row">
+          <span>Ticket Numbers</span>
+          <span id="receipt-numbers"
+            style="font-family: monospace; font-weight: 600; color: var(--ccec-navy);">CC-7501-A</span>
+        </div>
+        <div class="receipt-row">
+          <span>Total Paid</span>
+          <span id="receipt-price">R100</span>
+        </div>
+      </div>
+
+      <p class="modal-sub" style="font-size: 13px; margin-bottom: 24px;">
+        An email confirmation receipt and your PDF ticket files have been sent to your email.
+      </p>
+
+      <button class="btn btn-gold" id="success-done-btn" style="width: 100%;">Done &amp; Return</button>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Live Draw Visualizer - Suzuki Swift Giveaway</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body class="dark-theme">
+    <div class="draw-container">
+      <!-- Header -->
+      <header class="draw-header">
+        <div class="container draw-header-content">
+          <a href="/" class="logo-link">
+            <div class="logo-wrapper">
+              <img src="/image.png" alt="Community Chest Logo" class="logo-img" />
+              <div class="logo-text">
+                <span class="logo-title">Community Chest</span>
+                <span class="logo-subtitle">Live Draw Engine</span>
+              </div>
+            </div>
+          </a>
+          <a href="/" class="draw-back-link">
+            &larr; Back to Ticket Purchases
+          </a>
+        </div>
+      </header>
+
+      <!-- Draw Board -->
+      <main class="draw-hero-section">
+        <div class="hero-badge" style="background: rgba(224, 26, 34, 0.08); border-color: rgba(224, 26, 34, 0.2); color: var(--ccec-red);">
+          CCEC 75th Anniversary Grand Finale
+        </div>
+        <h1 class="draw-title-giant">Suzuki Swift <span>Key Ceremony</span></h1>
+        <p class="draw-subtitle">
+          Eight finalists. Eight hats. Eight keys. Only one key starts the engine. Finalists will pick a hat to test their key.
+        </p>
+
+        <!-- Choices Grid (Hats) -->
+        <div class="draw-choices-grid" id="choices-grid">
+          <!-- Dynamically populated via JS or pre-rendered -->
+          <div class="draw-card active-hover" data-index="0">
+            <div class="hat-graphic-wrapper">🎩</div>
+            <div class="choice-label">Finalist 1</div>
+            <span class="key-reveal-badge">...</span>
+          </div>
+          <div class="draw-card active-hover" data-index="1">
+            <div class="hat-graphic-wrapper">🎩</div>
+            <div class="choice-label">Finalist 2</div>
+            <span class="key-reveal-badge">...</span>
+          </div>
+          <div class="draw-card active-hover" data-index="2">
+            <div class="hat-graphic-wrapper">🎩</div>
+            <div class="choice-label">Finalist 3</div>
+            <span class="key-reveal-badge">...</span>
+          </div>
+          <div class="draw-card active-hover" data-index="3">
+            <div class="hat-graphic-wrapper">🎩</div>
+            <div class="choice-label">Finalist 4</div>
+            <span class="key-reveal-badge">...</span>
+          </div>
+          <div class="draw-card active-hover" data-index="4">
+            <div class="hat-graphic-wrapper">🎩</div>
+            <div class="choice-label">Finalist 5</div>
+            <span class="key-reveal-badge">...</span>
+          </div>
+          <div class="draw-card active-hover" data-index="5">
+            <div class="hat-graphic-wrapper">🎩</div>
+            <div class="choice-label">Finalist 6</div>
+            <span class="key-reveal-badge">...</span>
+          </div>
+          <div class="draw-card active-hover" data-index="6">
+            <div class="hat-graphic-wrapper">🎩</div>
+            <div class="choice-label">Finalist 7</div>
+            <span class="key-reveal-badge">...</span>
+          </div>
+          <div class="draw-card active-hover" data-index="7">
+            <div class="hat-graphic-wrapper">🎩</div>
+            <div class="choice-label">Finalist 8</div>
+            <span class="key-reveal-badge">...</span>
+          </div>
+        </div>
+
+        <!-- Controls Panel -->
+        <div class="draw-controls-panel">
+          <div class="control-info">
+            <h4 class="control-title">Gala Host Control Deck</h4>
+            <p class="control-desc">Reset the raffle key placements or change finalist names before beginning the ceremony.</p>
+          </div>
+          <div class="control-btn-group">
+            <button class="btn btn-secondary" id="config-names-btn" style="border-color: var(--border-color); color: white;">Configure Names</button>
+            <button class="btn btn-gold" id="reset-draw-btn">Shuffle &amp; Reset</button>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Winner Announcement Overlay -->
+    <div class="winner-overlay" id="winner-announce-overlay">
+      <div class="winner-content-box">
+        <div class="winner-confetti-effect">🎉 🚗 ✨</div>
+        <div class="winner-announce">Grand Prize Winner!</div>
+        <h2 class="winner-title" id="winner-name-display">Finalist X</h2>
+        <p class="winner-text">
+          The key has started the engine! They are driving home in the brand new Suzuki Swift!
+        </p>
+        <button class="btn btn-gold" id="close-winner-overlay" style="padding: 16px 36px; font-size: 16px;">Done &amp; Reset</button>
+      </div>
+    </div>
+
+    <!-- Configure Names Modal -->
+    <div class="modal-overlay" id="config-names-modal">
+      <div class="modal-content" style="max-width: 600px;">
+        <button class="modal-close" id="close-config">&times;</button>
+        <div class="modal-header-section">
+          <h3 class="modal-main-title">Configure Finalists</h3>
+          <p class="modal-sub">Type in the names of the 8 monthly winners selected for the key ceremony.</p>
+        </div>
+
+        <form id="config-names-form" onsubmit="return false;">
+          <div class="payment-row-grid" style="margin-bottom: 20px;">
+            <div class="form-group">
+              <label class="form-label">Finalist 1 Name</label>
+              <input class="form-input finalist-input" data-idx="0" type="text" value="Thabo Ndlovu" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Finalist 2 Name</label>
+              <input class="form-input finalist-input" data-idx="1" type="text" value="Sarah Jenkins" />
+            </div>
+          </div>
+          <div class="payment-row-grid" style="margin-bottom: 20px;">
+            <div class="form-group">
+              <label class="form-label">Finalist 3 Name</label>
+              <input class="form-input finalist-input" data-idx="2" type="text" value="Zolani Maseko" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Finalist 4 Name</label>
+              <input class="form-input finalist-input" data-idx="3" type="text" value="Anika Smit" />
+            </div>
+          </div>
+          <div class="payment-row-grid" style="margin-bottom: 20px;">
+            <div class="form-group">
+              <label class="form-label">Finalist 5 Name</label>
+              <input class="form-input finalist-input" data-idx="4" type="text" value="Moira Pillay" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Finalist 6 Name</label>
+              <input class="form-input finalist-input" data-idx="5" type="text" value="Liam O'Connor" />
+            </div>
+          </div>
+          <div class="payment-row-grid" style="margin-bottom: 20px;">
+            <div class="form-group">
+              <label class="form-label">Finalist 7 Name</label>
+              <input class="form-input finalist-input" data-idx="6" type="text" value="David Burger" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Finalist 8 Name</label>
+              <input class="form-input finalist-input" data-idx="7" type="text" value="Zama Khumalo" />
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-gold" id="save-names-btn" style="width: 100%;">Save Finalist Names</button>
+        </form>
+      </div>
+    </div>
+
+    <script type="module" src="/src/draw.js"></script>
+  </body>
+</html>
