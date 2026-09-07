@@ -6,9 +6,9 @@
   --ccec-red-hover: #b81218;
   --ccec-navy: #18181b; /* Charcoal/Zinc-900 */
   --ccec-navy-light: #27272a; /* Zinc-800 */
-  --gold-accent: #ffcc00; /* Vibrant Brand Yellow */
-  --gold-accent-hover: #e6b800; /* Darker Yellow */
-  --gold-glow: rgba(255, 204, 0, 0.4);
+  --gold-accent: #ff4d4d; /* Red Accent */
+  --gold-accent-hover: #e01a22; /* Darker Red Accent */
+  --gold-glow: rgba(224, 26, 34, 0.4);
 
   /* Backgrounds & Borders */
   --bg-main: #fafafa; /* Pure Warm White-Grey */
@@ -99,6 +99,52 @@ header {
 .dark-theme header {
   background: rgba(11, 15, 25, 0.85);
   border-bottom: 1px solid var(--border-color);
+}
+
+/* Transparent Navbar for Background-Hero Test Page */
+header.transparent-nav {
+  background: transparent;
+  backdrop-filter: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+}
+
+.hero-bg-page {
+  background: none;
+}
+
+header.transparent-nav .logo-title {
+  color: white;
+}
+
+header.transparent-nav .logo-subtitle {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+header.transparent-nav .nav-links a {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+header.transparent-nav .nav-links a:hover {
+  color: white;
+}
+
+header.transparent-nav .draw-back-link {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+header.transparent-nav .draw-back-link:hover {
+  color: white !important;
+}
+
+/* Extend hero section to sit behind the absolute navbar */
+.hero-bg-test.hero-bg-extend {
+  padding-top: 240px;
+  margin-top: 0;
 }
 
 .nav-container {
@@ -199,7 +245,7 @@ header {
 
 .hero-grid {
   display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
+  grid-template-columns: 1fr 1fr;
   gap: 60px;
   align-items: center;
 }
@@ -244,6 +290,74 @@ header {
 .hero-cta-group {
   display: flex;
   gap: 16px;
+}
+
+/* Test Hero style with Background Image */
+.hero-section.hero-bg-test {
+  background: linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.65)), url('/new%20hero%20test.jpg') no-repeat center center;
+  background-size: cover;
+  padding: 160px 0;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hero-bg-test .hero-grid {
+  grid-template-columns: 1fr;
+  max-width: 800px;
+  text-align: center;
+  margin: 0 auto;
+}
+
+.hero-bg-test .hero-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-bg-test .hero-title {
+  color: white;
+  font-size: 56px;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  margin-bottom: 20px;
+  line-height: 1.15;
+}
+
+.hero-bg-test .hero-title span {
+  background: linear-gradient(135deg, #e01a22 0%, #ff4d4d 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-bg-test .hero-description {
+  color: rgba(255, 255, 255, 0.9);
+  margin-inline: auto;
+  font-size: 20px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  margin-bottom: 36px;
+  max-width: 640px;
+}
+
+.hero-bg-test .hero-badge {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ff4d4d;
+}
+
+.hero-bg-test .hero-cta-group {
+  justify-content: center;
+}
+
+.hero-bg-test .btn-secondary {
+  color: white;
+  border-color: white;
+}
+
+.hero-bg-test .btn-secondary:hover {
+  background-color: white;
+  color: var(--ccec-navy);
 }
 
 /* Buttons */
@@ -307,9 +421,10 @@ header {
 
 .car-display-container {
   width: 100%;
-  max-width: 460px;
-  height: 460px;
+  max-width: 100%;
+  aspect-ratio: 1.6;
   position: relative;
+  transform: scaleX(-1);
 }
 
 .car-shadow-glow {
@@ -820,6 +935,8 @@ header {
   background: var(--bg-card);
   width: 100%;
   max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xl);
   border: 1px solid var(--border-color);
@@ -1372,6 +1489,929 @@ footer {
   }
   
   .control-info {
+    text-align: center;
+  }
+}
+
+/* ==========================================================================
+   Car Showcase Section Styles
+   ========================================================================== */
+.car-showcase-section {
+  padding: 100px 0;
+  background: linear-gradient(180deg, var(--bg-main) 0%, rgba(24, 24, 27, 0.03) 100%);
+  position: relative;
+}
+
+.car-showcase-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: center;
+  margin-top: 48px;
+}
+
+.car-hero-card {
+  position: relative;
+  background: linear-gradient(135deg, #18181b 0%, #09090b 100%);
+  border-radius: var(--radius-lg);
+  padding: 36px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+}
+
+.car-hero-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at center, rgba(224, 26, 34, 0.18) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.car-hero-img-wrapper {
+  position: relative;
+  z-index: 2;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #09090b;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
+  margin-top: 36px;
+  margin-bottom: 24px;
+  cursor: pointer;
+  width: 100%;
+  min-height: 340px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+
+.car-hero-img {
+  width: 100%;
+  height: 100%;
+  max-height: 360px;
+  display: block;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+  transition: transform var(--transition-normal);
+}
+
+.car-hero-img-wrapper:hover .car-hero-img {
+  transform: scale(1.02);
+}
+
+.car-hero-badge {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(224, 26, 34, 0.15);
+  border: 1px solid rgba(224, 26, 34, 0.4);
+  color: #ff4d4d;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  z-index: 3;
+  backdrop-filter: blur(8px);
+}
+
+.car-specs-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-top: 24px;
+  z-index: 2;
+  position: relative;
+}
+
+.spec-item-box {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  backdrop-filter: blur(6px);
+}
+
+.spec-item-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+}
+
+.spec-item-val {
+  font-size: 15px;
+  font-weight: 700;
+  color: white;
+  margin-top: 4px;
+}
+
+.car-features-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.feature-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: rgba(224, 26, 34, 0.3);
+}
+
+.feature-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: rgba(224, 26, 34, 0.08);
+  color: var(--ccec-red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 22px;
+}
+
+.feature-info h4 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.feature-info p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* Gallery Strip */
+.car-gallery-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 36px;
+}
+
+.gallery-thumb-card {
+  position: relative;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  height: 140px;
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.gallery-thumb-card:hover {
+  transform: scale(1.03);
+  box-shadow: var(--shadow-md);
+}
+
+.gallery-thumb-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-normal);
+}
+
+.gallery-thumb-card:hover img {
+  transform: scale(1.1);
+}
+
+.gallery-overlay-tag {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+/* ==========================================================================
+   Community Chest Impact Section Styles
+   ========================================================================== */
+.impact-section {
+  padding: 100px 0;
+  background: #18181b;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.impact-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(224, 26, 34, 0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.impact-header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(224, 26, 34, 0.12);
+  border: 1px solid rgba(224, 26, 34, 0.3);
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  color: #ff4d4d;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.impact-header-badge img {
+  height: 20px;
+  width: auto;
+  border-radius: 3px;
+}
+
+.impact-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin-top: 48px;
+}
+
+.impact-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
+  padding: 32px 24px;
+  text-align: center;
+  transition: transform var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.impact-card:hover {
+  transform: translateY(-6px);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(224, 26, 34, 0.4);
+}
+
+.impact-icon-wrapper {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  background: rgba(224, 26, 34, 0.15);
+  color: #ff4d4d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+}
+
+.impact-card h3 {
+  font-size: 19px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 10px;
+}
+
+.impact-card p {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.5;
+}
+
+.impact-counter-bar {
+  margin-top: 56px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  text-align: center;
+}
+
+.counter-num {
+  font-size: 38px;
+  font-weight: 800;
+  font-family: var(--font-heading);
+  background: linear-gradient(135deg, #ff4d4d 0%, #ffffff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: block;
+}
+
+.counter-desc {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.75);
+  margin-top: 4px;
+}
+
+/* Lightbox/Gallery Modal */
+.gallery-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(12px);
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.gallery-modal-overlay.active {
+  display: flex;
+}
+
+.gallery-modal-img {
+  max-width: 90vw;
+  max-height: 85vh;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+  box-shadow: 0 25px 50px rgba(0,0,0,0.8);
+}
+
+@media (max-width: 1024px) {
+  .car-showcase-grid {
+    grid-template-columns: 1fr;
+  }
+  .impact-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .impact-counter-bar {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+@media (max-width: 640px) {
+  .impact-grid {
+    grid-template-columns: 1fr;
+  }
+  .car-gallery-strip {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Community Impact Split Grid with Campaign Poster */
+.impact-main-split {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 36px;
+  margin-top: 48px;
+  align-items: start;
+}
+
+.impact-poster-card {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.6);
+  background: #09090b;
+  width: 100%;
+  min-height: 520px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.impact-poster-card img {
+  width: 100%;
+  height: 100%;
+  max-height: 560px;
+  display: block;
+  object-fit: contain;
+  transition: transform var(--transition-normal);
+}
+
+.impact-poster-card:hover img {
+  transform: scale(1.02);
+}
+
+/* Campaign Partner Footer Banner */
+.partner-signature-banner {
+  margin-bottom: 44px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+  background: #09090b;
+  min-height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+
+.partner-signature-banner img {
+  width: 100%;
+  height: 100%;
+  max-height: 280px;
+  object-fit: contain;
+  display: block;
+}
+
+@media (max-width: 1024px) {
+  .impact-main-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   Mobile Optimisation — Framer iframe embed
+   ========================================================================== */
+
+/* Prevent horizontal scroll globally */
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+  scroll-behavior: smooth;
+}
+
+/* ── Tablet / small desktop ─────────────────────────────────── 768 px ── */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 16px;
+  }
+
+  /* Hero */
+  .hero-section.hero-bg-test {
+    padding: 80px 0 60px;
+  }
+  .hero-bg-test .hero-title {
+    font-size: 36px;
+  }
+  .hero-bg-test .hero-description {
+    font-size: 16px;
+    margin-bottom: 28px;
+  }
+  .hero-cta-group {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .hero-cta-group .btn {
+    width: 100%;
+    max-width: 320px;
+  }
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  /* Car Showcase */
+  .car-showcase-section {
+    padding: 60px 0;
+  }
+  .car-showcase-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .car-hero-card {
+    padding: 20px;
+  }
+  .car-hero-img-wrapper {
+    min-height: 220px;
+  }
+  .car-hero-img {
+    max-height: 240px;
+  }
+  .car-specs-list {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .car-features-column {
+    gap: 14px;
+  }
+  .feature-card {
+    padding: 16px;
+    gap: 14px;
+  }
+
+  /* Impact */
+  .impact-section {
+    padding: 60px 0;
+  }
+  .impact-poster-card {
+    min-height: 320px;
+  }
+  .impact-poster-card img {
+    max-height: 360px;
+  }
+  .impact-counter-bar {
+    grid-template-columns: repeat(3, 1fr);
+    padding: 20px 16px;
+    gap: 8px;
+    margin-top: 32px;
+  }
+  .counter-num {
+    font-size: 26px;
+  }
+  .counter-desc {
+    font-size: 11px;
+  }
+
+  /* Tickets */
+  .ticket-section {
+    padding: 60px 0;
+  }
+  .ticket-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .checkout-summary-card {
+    position: static;
+  }
+  .section-title {
+    font-size: 28px;
+  }
+  .section-header {
+    margin-bottom: 36px;
+  }
+
+  /* How it works / timeline */
+  .journey-section {
+    padding: 60px 0;
+  }
+
+  /* Footer */
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .partner-signature-banner {
+    min-height: 140px;
+  }
+  .partner-signature-banner img {
+    max-height: 180px;
+  }
+}
+
+/* ── Mobile ─────────────────────────────────────────────────── 480 px ── */
+@media (max-width: 480px) {
+  .container {
+    padding: 0 12px;
+  }
+
+  /* Hero */
+  .hero-section.hero-bg-test {
+    padding: 60px 0 50px;
+  }
+  .hero-bg-test .hero-title {
+    font-size: 30px;
+    line-height: 1.2;
+  }
+  .hero-bg-test .hero-description {
+    font-size: 15px;
+  }
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    padding: 16px;
+  }
+  .stat-number {
+    font-size: 22px;
+  }
+
+  /* Car Showcase */
+  .car-hero-img-wrapper {
+    min-height: 180px;
+    margin-top: 20px;
+    margin-bottom: 16px;
+  }
+  .car-hero-img {
+    max-height: 200px;
+  }
+  .car-specs-list {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .spec-item-box {
+    padding: 10px 12px;
+  }
+  .spec-item-val {
+    font-size: 13px;
+  }
+  .feature-card {
+    flex-direction: row;
+    padding: 14px;
+    gap: 12px;
+  }
+  .feature-icon-box {
+    width: 38px;
+    height: 38px;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .feature-info h4 {
+    font-size: 15px;
+  }
+  .feature-info p {
+    font-size: 13px;
+  }
+
+  /* Impact */
+  .impact-poster-card {
+    min-height: 260px;
+    padding: 10px;
+  }
+  .impact-poster-card img {
+    max-height: 300px;
+  }
+  .impact-counter-bar {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 20px;
+    text-align: center;
+    margin-top: 24px;
+  }
+  .counter-num {
+    font-size: 32px;
+  }
+
+  /* Tickets */
+  .bundle-card {
+    padding: 16px 18px;
+  }
+  .bundle-name {
+    font-size: 14px;
+  }
+  .bundle-price {
+    font-size: 18px;
+  }
+  .checkout-summary-card {
+    padding: 20px;
+  }
+  .btn {
+    padding: 13px 20px;
+    font-size: 14px;
+  }
+
+  /* Footer signature banner */
+  .partner-signature-banner {
+    min-height: 100px;
+    padding: 8px;
+  }
+  .partner-signature-banner img {
+    max-height: 120px;
+  }
+
+  /* Gallery modal */
+  .gallery-modal-img {
+    max-width: 95vw;
+    max-height: 80vh;
+  }
+
+  /* Impact section header */
+  .impact-header-badge {
+    font-size: 11px;
+    padding: 5px 12px;
+  }
+}
+
+/* ── Small phones ────────────────────────────────────────────── 375 px ── */
+@media (max-width: 375px) {
+  .hero-bg-test .hero-title {
+    font-size: 26px;
+  }
+  .hero-bg-test .hero-description {
+    font-size: 14px;
+  }
+  .car-hero-img-wrapper {
+    min-height: 160px;
+  }
+  .car-hero-img {
+    max-height: 175px;
+  }
+  .impact-poster-card {
+    min-height: 220px;
+  }
+  .impact-poster-card img {
+    max-height: 260px;
+  }
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .section-title {
+    font-size: 24px;
+  }
+}
+
+/* ── Terms & Conditions Form Integration & Modal ── */
+.terms-checkbox-group {
+  margin-top: 14px;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.terms-checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  user-select: none;
+}
+
+.terms-checkbox-label input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  min-width: 17px;
+  margin-top: 2px;
+  accent-color: var(--ccec-red);
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.terms-link {
+  color: var(--ccec-red);
+  text-decoration: underline;
+  font-weight: 600;
+  transition: color var(--transition-fast), text-decoration-color var(--transition-fast);
+}
+
+.terms-link:hover {
+  color: var(--ccec-red-hover);
+  text-decoration-thickness: 2px;
+}
+
+.terms-modal-overlay {
+  z-index: 1200; /* Higher than checkout modal (1000) so it overlays cleanly */
+}
+
+.terms-modal-content {
+  max-width: 620px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  padding: 32px 32px 24px;
+  text-align: left;
+}
+
+.terms-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  background: rgba(224, 26, 34, 0.08);
+  color: var(--ccec-red);
+  border: 1px solid rgba(224, 26, 34, 0.2);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.terms-scroll-body {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 12px;
+  margin-bottom: 20px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(224, 26, 34, 0.3) transparent;
+}
+
+.terms-scroll-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.terms-scroll-body::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 6px;
+}
+
+.terms-scroll-body::-webkit-scrollbar-thumb {
+  background: rgba(224, 26, 34, 0.3);
+  border-radius: 6px;
+}
+
+.terms-scroll-body::-webkit-scrollbar-thumb:hover {
+  background: var(--ccec-red);
+}
+
+.terms-section-heading {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+  text-transform: uppercase;
+}
+
+.terms-rules-list {
+  list-style-type: decimal;
+  padding-left: 20px;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.terms-rules-list > li {
+  padding-left: 4px;
+}
+
+.terms-rules-list strong {
+  color: var(--text-primary);
+}
+
+.terms-sub-list {
+  list-style-type: lower-alpha;
+  padding-left: 20px;
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--text-secondary);
+}
+
+.terms-footnote-box {
+  margin-top: 18px;
+  padding: 12px 16px;
+  background: rgba(224, 26, 34, 0.05);
+  border-left: 3px solid var(--ccec-red);
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.terms-footnote-box strong {
+  color: var(--text-primary);
+}
+
+.terms-modal-actions {
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Site Footer */
+.site-footer {
+  background: #111113;
+  border-top: 1px solid #27272a;
+  padding: 24px 0;
+  color: #a1a1aa;
+  font-size: 13px;
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.footer-left p {
+  margin: 0;
+}
+
+.footer-link {
+  color: #d4d4d8;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color var(--transition-fast);
+}
+
+.footer-link:hover {
+  color: var(--ccec-red);
+  text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+  .terms-modal-content {
+    padding: 24px 18px 18px;
+    max-height: 88vh;
+  }
+  .footer-content {
+    flex-direction: column;
     text-align: center;
   }
 }

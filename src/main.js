@@ -41,19 +41,62 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectedName = 'Single Entry';
   let customQty = 1;
 
+  // Smooth scroll handler for anchor links (ensures iframe compatibility in Framer)
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      const targetId = this.getAttribute('href');
+      if (targetId && targetId !== '#') {
+        const targetElement = document.querySelector(targetId);
+        if (targetElement) {
+          e.preventDefault();
+          targetElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      }
+    });
+  });
+
   // Initial UI Update
   updateCheckoutSummary();
 
-  // Increment total ticket counter dynamically just for fun
-  let totalEntriesCount = 14820;
-  setInterval(() => {
-    if (Math.random() > 0.6) {
-      totalEntriesCount += Math.floor(Math.random() * 3) + 1;
-      if (statsTotalEntries) {
-        statsTotalEntries.textContent = totalEntriesCount.toLocaleString();
+  // Check if we just returned from a successful Payfast payment
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('payment') === 'success') {
+    const nameVal = urlParams.get('name');
+    const qtyVal = parseInt(urlParams.get('qty')) || 0;
+    const priceVal = urlParams.get('price');
+    const ticketsVal = urlParams.get('tickets') || '';
+
+    // Populate Receipt Modal
+    if (receiptName) receiptName.textContent = nameVal;
+    if (receiptQty) receiptQty.textContent = `${qtyVal} Entry Ticket${qtyVal > 1 ? 's' : ''}`;
+    if (receiptPrice) receiptPrice.textContent = `R${priceVal}`;
+
+    if (receiptNumbers && ticketsVal) {
+      const ticketNums = ticketsVal.split(',');
+      if (ticketNums.length <= 3) {
+        receiptNumbers.textContent = ticketNums.join(', ');
+      } else {
+        receiptNumbers.textContent = `${ticketNums.slice(0, 3).join(', ')} ... (+ ${ticketNums.length - 3} more)`;
       }
     }
-  }, 5000);
+
+    // Show Success Modal
+    if (successModal) {
+      successModal.classList.add('active');
+    }
+
+    // Clean up URL query parameters so refreshing doesn't keep showing the modal
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+
+  // Actual ticket counter (starts at 0 for live launch)
+  let totalEntriesCount = 0;
+  if (statsTotalEntries) {
+    statsTotalEntries.textContent = totalEntriesCount.toLocaleString();
+  }
 
   // Bundle selection event
   bundleCards.forEach(card => {
@@ -136,76 +179,198 @@ document.addEventListener('DOMContentLoaded', () => {
     modalTicketsLabel.textContent = `${selectedQty} Ticket${selectedQty > 1 ? 's' : ''}`;
     modalCostLabel.textContent = `R${selectedPrice}`;
     checkoutModal.classList.add('active');
+    document.body.style.overflow = 'hidden'; // prevent background scroll
   });
 
   closeCheckout.addEventListener('click', () => {
     checkoutModal.classList.remove('active');
+    document.body.style.overflow = '';
   });
 
-  // Close modals on clicking overlay background
-  window.addEventListener('click', (e) => {
-    if (e.target === checkoutModal) {
-      checkoutModal.classList.remove('active');
-    }
-    if (e.target === successModal) {
-      successModal.classList.remove('active');
-    }
-  });
+  // Terms and Conditions Elements
+  const termsModal = document.getElementById('terms-modal');
+  const openTermsBtn = document.getElementById('open-terms-btn');
+  const footerTermsLink = document.getElementById('footer-terms-link');
+  const closeTerms = document.getElementById('close-terms');
+  const acceptTermsModalBtn = document.getElementById('accept-terms-modal-btn');
+  const acceptTermsCheckbox = document.getElementById('accept-terms');
 
-  // Payment Form Submit (Simulation)
-  paymentForm.addEventListener('submit', (e) => {
+  const openTerms = (e) => {
+    if (e) e.preventDefault();
+    if (termsModal) {
+      termsModal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+  };
+
+  const closeTermsFn = () => {
+    if (termsModal) {
+      termsModal.classList.remove('active');
+      // If checkout modal is still active, keep overflow hidden
+      if (!checkoutModal.classList.contains('active')) {
+        document.body.style.overflow = '';
+      }
+    }
+  };
+
+  if (openTermsBtn) openTermsBtn.addEventListener('click', openTerms);
+  if (footerTermsLink) footerTermsLink.addEventListener('click', openTerms);
+  if (closeTerms) closeTerms.addEventListener('click', closeTermsFn);
+
+  if (acceptTermsModalBtn) {
+    acceptTermsModalBtn.addEventListener('click', () => {
+      if (acceptTermsCheckbox) {
+        acceptTermsCheckbox.checked = true;
+      }
+      closeTermsFn();
+    });
+  }
+
+  // Payment Form Submit (Payfast integration)
+  paymentForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+
+    if (acceptTermsCheckbox && !acceptTermsCheckbox.checked) {
+      alert('Please read and accept the terms and conditions to proceed.');
+      acceptTermsCheckbox.focus();
+      return;
+    }
 
     // Change button status
     submitPaymentBtn.disabled = true;
-    submitPaymentBtn.textContent = 'Processing Secure Payment...';
+    submitPaymentBtn.textContent = 'Redirecting to Secure PayFast...';
 
-    // Simulate Payment gateway response
-    setTimeout(() => {
-      // Gather data
-      const nameVal = document.getElementById('pay-name').value;
-      const emailVal = document.getElementById('pay-email').value;
+    // Gather data
+    const nameVal = document.getElementById('pay-name').value;
+    const emailVal = document.getElementById('pay-email').value;
+    const phoneVal = document.getElementById('pay-phone').value;
 
-      // Populate Receipt
-      receiptName.textContent = nameVal;
-      receiptQty.textContent = `${selectedQty} Entry Ticket${selectedQty > 1 ? 's' : ''}`;
-      receiptPrice.textContent = `R${selectedPrice}`;
+    try {
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: nameVal,
+          email: emailVal,
+          phone: phoneVal,
+          qty: selectedQty,
+          price: selectedPrice,
+        }),
+      });
 
-      // Generate random ticket numbers
-      const ticketNums = [];
-      for (let i = 0; i < selectedQty; i++) {
-        const num = Math.floor(1000 + Math.random() * 9000);
-        const char = String.fromCharCode(65 + Math.floor(Math.random() * 26));
-        ticketNums.push(`CC-75${num}-${char}`);
-      }
-      // Show first 3 tickets, group others as "+ X more"
-      if (ticketNums.length <= 3) {
-        receiptNumbers.textContent = ticketNums.join(', ');
-      } else {
-        receiptNumbers.textContent = `${ticketNums.slice(0, 3).join(', ')} ... (+ ${ticketNums.length - 3} more)`;
-      }
-
-      // Increment total entries on the site
-      totalEntriesCount += selectedQty;
-      if (statsTotalEntries) {
-        statsTotalEntries.textContent = totalEntriesCount.toLocaleString();
+      if (!response.ok) {
+        throw new Error('Failed to initiate secure checkout session');
       }
 
-      // Show Success Modal
-      checkoutModal.classList.remove('active');
-      successModal.classList.add('active');
+      const checkoutData = await response.json();
 
-      // Reset Form and button state
+      if (checkoutData.success) {
+        // Populate Receipt Modal directly
+        if (receiptName) receiptName.textContent = checkoutData.name;
+        if (receiptQty) receiptQty.textContent = `${checkoutData.qty} Entry Ticket${checkoutData.qty > 1 ? 's' : ''}`;
+        if (receiptPrice) receiptPrice.textContent = `R${checkoutData.price}`;
+
+        if (receiptNumbers && checkoutData.tickets) {
+          const ticketNums = checkoutData.tickets.split(',');
+          if (ticketNums.length <= 3) {
+            receiptNumbers.textContent = ticketNums.join(', ');
+          } else {
+            receiptNumbers.textContent = `${ticketNums.slice(0, 3).join(', ')} ... (+ ${ticketNums.length - 3} more)`;
+          }
+        }
+
+        // Show Success Modal
+        checkoutModal.classList.remove('active');
+        successModal.classList.add('active');
+        paymentForm.reset();
+        
+        submitPaymentBtn.disabled = false;
+        submitPaymentBtn.textContent = 'Proceed to Secure PayFast Payment →';
+        return;
+      }
+
+      // Dynamically create a form and submit it to redirect to Payfast
+      // target="_blank" ensures PayFast opens in a new tab, breaking out of
+      // any parent iframe (e.g. Framer embed) that would block PayFast's anti-iframe policy
+      const payfastForm = document.createElement('form');
+      payfastForm.method = 'POST';
+      payfastForm.action = checkoutData.url;
+      payfastForm.target = '_blank';
+
+      Object.keys(checkoutData.fields).forEach(key => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = checkoutData.fields[key];
+        payfastForm.appendChild(input);
+      });
+
+      document.body.appendChild(payfastForm);
+      payfastForm.submit();
+      document.body.removeChild(payfastForm);
+    } catch (error) {
+      console.error('Checkout error:', error);
+      alert('Error initiating checkout. Please try again.');
       submitPaymentBtn.disabled = false;
-      submitPaymentBtn.textContent = 'Pay Securely Now';
-      paymentForm.reset();
-    }, 1800);
+      submitPaymentBtn.textContent = 'Proceed to Secure PayFast Payment →';
+    }
   });
 
   // Success Modal close
   const closeSuccessFn = () => {
     successModal.classList.remove('active');
+    document.body.style.overflow = '';
   };
   closeSuccess.addEventListener('click', closeSuccessFn);
   successDoneBtn.addEventListener('click', closeSuccessFn);
+
+  // Close modals when clicking the dark overlay backdrop
+  checkoutModal.addEventListener('click', (e) => {
+    if (e.target === checkoutModal) {
+      checkoutModal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  });
+
+  if (termsModal) {
+    termsModal.addEventListener('click', (e) => {
+      if (e.target === termsModal) {
+        closeTermsFn();
+      }
+    });
+  }
+
+  if (successModal) {
+    successModal.addEventListener('click', (e) => {
+      if (e.target === successModal) {
+        successModal.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    });
+  }
+
+  // Gallery Lightbox Lightbox Preview
+  const galleryLightbox = document.getElementById('gallery-lightbox');
+  const galleryTarget = document.getElementById('gallery-modal-target');
+  const galleryThumbs = document.querySelectorAll('.gallery-thumb-card');
+
+  if (galleryLightbox && galleryTarget && galleryThumbs.length > 0) {
+    galleryThumbs.forEach(thumb => {
+      thumb.addEventListener('click', () => {
+        const imgSrc = thumb.getAttribute('data-img');
+        if (imgSrc) {
+          galleryTarget.src = imgSrc;
+          galleryLightbox.classList.add('active');
+        }
+      });
+    });
+
+    galleryLightbox.addEventListener('click', () => {
+      galleryLightbox.classList.remove('active');
+    });
+  }
 });
+
+
