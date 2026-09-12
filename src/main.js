@@ -92,11 +92,52 @@ document.addEventListener('DOMContentLoaded', () => {
     window.history.replaceState({}, document.title, window.location.pathname);
   }
 
-  // Actual ticket counter (starts at 0 for live launch)
-  let totalEntriesCount = 0;
-  if (statsTotalEntries) {
-    statsTotalEntries.textContent = totalEntriesCount.toLocaleString();
+  // Fetch genuine ticket counter from Google Sheets API
+  async function loadGenuineTicketCount() {
+    if (!statsTotalEntries) return;
+
+    try {
+      const response = await fetch('/api/tickets-count');
+      if (!response.ok) throw new Error('Tickets count response not OK');
+
+      const data = await response.json();
+      if (data && typeof data.count === 'number') {
+        animateCounter(statsTotalEntries, data.count);
+      }
+    } catch (err) {
+      console.warn('Could not fetch live ticket count:', err);
+    }
   }
+
+  // Smooth counter animation function
+  function animateCounter(element, target) {
+    if (target <= 0) {
+      element.textContent = '0';
+      return;
+    }
+
+    const duration = 1500;
+    const startTime = performance.now();
+
+    function step(currentTime) {
+      const elapsedTime = currentTime - startTime;
+      const progress = Math.min(elapsedTime / duration, 1);
+      const easeProgress = 1 - Math.pow(1 - progress, 3);
+      const currentVal = Math.floor(target * easeProgress);
+
+      element.textContent = currentVal.toLocaleString();
+
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        element.textContent = target.toLocaleString();
+      }
+    }
+
+    requestAnimationFrame(step);
+  }
+
+  loadGenuineTicketCount();
 
   // Bundle selection event
   bundleCards.forEach(card => {

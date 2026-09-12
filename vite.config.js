@@ -2,12 +2,32 @@ import { resolve } from 'path';
 import { defineConfig } from 'vite';
 import checkoutHandler from './api/checkout.js';
 import webhookHandler from './api/payfast-webhook.js';
+import ticketsCountHandler from './api/tickets-count.js';
 
 function apiDevServerPlugin() {
   return {
     name: 'api-dev-server-plugin',
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
+        if (req.url.startsWith('/api/tickets-count') && req.method === 'GET') {
+          res.json = (data) => {
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify(data));
+            return res;
+          };
+          res.status = (code) => {
+            res.statusCode = code;
+            return res;
+          };
+          try {
+            await ticketsCountHandler(req, res);
+          } catch (err) {
+            console.error('API Dev Server Error:', err);
+            res.status(500).json({ error: err.message });
+          }
+          return;
+        }
+
         if (req.url.startsWith('/api/checkout') && req.method === 'POST') {
           let body = '';
           req.on('data', chunk => { body += chunk; });
