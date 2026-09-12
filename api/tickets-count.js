@@ -2,62 +2,50 @@ import { google } from 'googleapis';
 import { DEFAULT_SPREADSHEET_ID } from './helpers.js';
 
 export default async function handler(req, res) {
+  // Prevent aggressive edge caching while testing live sheet updates
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
 
   const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID || DEFAULT_SPREADSHEET_ID;
   const webappUrl = process.env.GOOGLE_SHEET_WEBAPP_URL || '';
   const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || '';
-  const hasPrivateKey = !!process.env.GOOGLE_PRIVATE_KEY;
 
   const diagnostics = {
     spreadsheetId,
     hasWebappUrl: !!webappUrl,
     hasServiceAccountEmail: !!serviceAccountEmail,
-    hasPrivateKey,
+    hasPrivateKey: !!process.env.GOOGLE_PRIVATE_KEY,
     attempts: []
   };
 
-  // 1. Try Google Sheets API via Service Account (if configured)
+  // 1. Try Google Sheets API via Service Account (if configured in env)
   if (serviceAccountEmail && process.env.GOOGLE_PRIVATE_KEY) {
     try {
       const auth = new google.auth.JWT(
         serviceAccountEmail,
         null,
         process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-        ['https://www.googleapis.com/auth/spreadsheets.readonly', 'https://www.googleapis.com/auth/spreadsheets']
+        ['https://www.googleapis.com/auth/spreadsheets.readonly']
       );
 
       const sheets = google.sheets({ version: 'v4', auth });
       
-      // Get spreadsheet metadata to list all sheet tab names
       const metaRes = await sheets.spreadsheets.get({ spreadsheetId });
       const sheetTabs = metaRes.data.sheets?.map(s => s.properties?.title) || [];
-
-      // Read from the first sheet tab or Sheet1
       const targetSheet = sheetTabs[0] || 'Sheet1';
+
       const sheetsRes = await sheets.spreadsheets.values.get({
         spreadsheetId,
         range: `${targetSheet}!A1:Z5000`,
       });
 
       const allRows = sheetsRes.data.values || [];
-      diagnostics.attempts.push({
-        method: 'sheets-api',
-        sheetTabs,
-        targetSheet,
-        totalRowsInSheet: allRows.length,
-        sampleRows: allRows.slice(0, 5) // Inspect header & top 4 rows
-      });
-
       let totalTickets = 0;
-      let validEntries = [];
+      let validRowCount = 0;
 
-      // Loop through rows skipping header
       for (let i = 0; i < allRows.length; i++) {
         const row = allRows[i];
         const firstCol = String(row[0] || '').toLowerCase();
         
-        // Skip header row
         if (i === 0 && (firstCol.includes('date') || firstCol.includes('time') || firstCol.includes('id') || firstCol.includes('name'))) {
           continue;
         }
@@ -67,6 +55,7 @@ export default async function handler(req, res) {
 
         if (statusCol.includes('cancel') || statusCol.includes('fail')) continue;
 
+        validRowCount++;
         let rowTickets = 1;
         if (ticketsCol) {
           const str = String(ticketsCol).trim();
@@ -79,43 +68,34 @@ export default async function handler(req, res) {
         }
 
         totalTickets += rowTickets;
-        validEntries.push({ rowIdx: i + 1, ticketsCount: rowTickets, rowData: row });
       }
+
+      diagnostics.attempts.push({
+        method: 'sheets-api',
+        sheetTabs,
+        totalRows: allRows.length,
+        validEntries: validRowCount
+      });
 
       return res.status(200).json({
         success: true,
         count: totalTickets,
         countFormatted: totalTickets.toLocaleString(),
-        rowsCount: validEntries.length,
+        rowsCount: validRowCount,
         source: 'sheets-api',
         diagnostics
       });
     } catch (err) {
-      diagnostics.attempts.push({
-        method: 'sheets-api',
-        error: err.message,
-        stack: err.stack
-      });
+      diagnostics.attempts.push({ method: 'sheets-api', error: err.message });
     }
   }
 
-  // 2. Try Apps Script Web App (if configured)
+  // 2. Try Apps Script Web App GET (if configured in env)
   if (webappUrl) {
     try {
       const getUrl = `${webappUrl}?action=getTicketsCount&t=${Date.now()}`;
       const appScriptRes = await fetch(getUrl);
-      const appScriptText = await appScriptRes.text();
-      let appScriptData = {};
-      try {
-        appScriptData = JSON.parse(appScriptText);
-      } catch (e) {
-        appScriptData = { rawText: appScriptText };
-      }
-
-      diagnostics.attempts.push({
-        method: 'webapp-url',
-        response: appScriptData
-      });
+      const appScriptData = await appScriptRes.json();
 
       if (appScriptData && typeof appScriptData.count === 'number') {
         return res.status(200).json({
@@ -127,14 +107,11 @@ export default async function handler(req, res) {
         });
       }
     } catch (err) {
-      diagnostics.attempts.push({
-        method: 'webapp-url',
-        error: err.message
-      });
+      diagnostics.attempts.push({ method: 'webapp-url', error: err.message });
     }
   }
 
-  // 3. Try gviz endpoint (public sheet fallback)
+  // 3. Try Google gviz endpoint (for public / shared Google Sheets)
   try {
     const gvizUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json`;
     const response = await fetch(gvizUrl);
@@ -150,8 +127,7 @@ export default async function handler(req, res) {
         diagnostics.attempts.push({
           method: 'gviz',
           colsCount: data.table?.cols?.length || 0,
-          rowsCount: rows.length,
-          cols: data.table?.cols
+          rowsCount: rows.length
         });
 
         let totalTickets = 0;
@@ -195,10 +171,7 @@ export default async function handler(req, res) {
       }
     }
   } catch (err) {
-    diagnostics.attempts.push({
-      method: 'gviz',
-      error: err.message
-    });
+    diagnostics.attempts.push({ method: 'gviz', error: err.message });
   }
 
   return res.status(200).json({
