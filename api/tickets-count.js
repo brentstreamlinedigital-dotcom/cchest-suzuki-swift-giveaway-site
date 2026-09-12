@@ -1,23 +1,115 @@
 import { google } from 'googleapis';
 import { DEFAULT_SPREADSHEET_ID } from './helpers.js';
 
+export const PUBLISHED_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSItV5BarzKpjqRObkLg0OoSwsv1wQ4a_bJsQycheSDr9Ktd5cq3gZCFPTuAdNqiYkNw6CsW5NNpvyF/pub?output=csv';
+
+function parseCSV(text) {
+  const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
+  const rows = [];
+
+  for (const line of lines) {
+    const cells = [];
+    let insideQuotes = false;
+    let currentCell = '';
+
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        insideQuotes = !insideQuotes;
+      } else if (char === ',' && !insideQuotes) {
+        cells.push(currentCell.trim());
+        currentCell = '';
+      } else {
+        currentCell += char;
+      }
+    }
+    cells.push(currentCell.trim());
+    rows.push(cells);
+  }
+
+  return rows;
+}
+
 export default async function handler(req, res) {
-  // Prevent aggressive edge caching while testing live sheet updates
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
 
   const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID || DEFAULT_SPREADSHEET_ID;
+  const publishedUrl = process.env.GOOGLE_PUBLISHED_SHEET_URL || PUBLISHED_SHEET_URL;
   const webappUrl = process.env.GOOGLE_SHEET_WEBAPP_URL || '';
   const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || '';
 
   const diagnostics = {
     spreadsheetId,
+    publishedUrl,
     hasWebappUrl: !!webappUrl,
     hasServiceAccountEmail: !!serviceAccountEmail,
     hasPrivateKey: !!process.env.GOOGLE_PRIVATE_KEY,
     attempts: []
   };
 
-  // 1. Try Google Sheets API via Service Account (if configured in env)
+  // 1. Try Published CSV URL
+  try {
+    const csvRes = await fetch(publishedUrl);
+    if (csvRes.ok) {
+      const csvText = await csvRes.text();
+      const rows = parseCSV(csvText);
+
+      diagnostics.attempts.push({
+        method: 'published-csv',
+        totalRows: rows.length,
+        rawCsvLength: csvText.length,
+        sampleRows: rows.slice(0, 5)
+      });
+
+      let totalTickets = 0;
+      let validRowCount = 0;
+
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const firstCol = String(row[0] || '').toLowerCase();
+
+        // Skip header
+        if (i === 0 && (firstCol.includes('date') || firstCol.includes('time') || firstCol.includes('id') || firstCol.includes('name') || firstCol.includes('timestamp'))) {
+          continue;
+        }
+
+        const ticketsCol = row[6] || row[5] || '';
+        const statusCol = String(row[7] || row[6] || '').toLowerCase();
+
+        if (statusCol.includes('cancel') || statusCol.includes('fail')) continue;
+
+        validRowCount++;
+        let rowTickets = 1;
+
+        if (ticketsCol) {
+          const str = String(ticketsCol).replace(/^"|"$/g, '').trim();
+          if (str.includes(',')) {
+            const list = str.split(',').map(t => t.trim()).filter(Boolean);
+            rowTickets = Math.max(1, list.length);
+          } else if (!isNaN(Number(str)) && Number(str) > 0) {
+            rowTickets = parseInt(str, 10);
+          }
+        }
+
+        totalTickets += rowTickets;
+      }
+
+      if (rows.length > 0) {
+        return res.status(200).json({
+          success: true,
+          count: totalTickets,
+          countFormatted: totalTickets.toLocaleString(),
+          rowsCount: validRowCount,
+          source: 'published-csv',
+          diagnostics
+        });
+      }
+    }
+  } catch (err) {
+    diagnostics.attempts.push({ method: 'published-csv', error: err.message });
+  }
+
+  // 2. Try Google Sheets API via Service Account (if configured in env)
   if (serviceAccountEmail && process.env.GOOGLE_PRIVATE_KEY) {
     try {
       const auth = new google.auth.JWT(
@@ -90,7 +182,7 @@ export default async function handler(req, res) {
     }
   }
 
-  // 2. Try Apps Script Web App GET (if configured in env)
+  // 3. Try Apps Script Web App GET (if configured in env)
   if (webappUrl) {
     try {
       const getUrl = `${webappUrl}?action=getTicketsCount&t=${Date.now()}`;
@@ -111,7 +203,7 @@ export default async function handler(req, res) {
     }
   }
 
-  // 3. Try Google gviz endpoint (for public / shared Google Sheets)
+  // 4. Try Google gviz endpoint (for public / shared Google Sheets)
   try {
     const gvizUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json`;
     const response = await fetch(gvizUrl);
