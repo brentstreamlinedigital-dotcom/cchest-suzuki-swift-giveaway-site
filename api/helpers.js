@@ -6,7 +6,8 @@ export const DEFAULT_SPREADSHEET_ID = '1MsSIsNoDCjRtHBgCQ4zKMzf89KXD1hBbBXjSqxbz
 export const DEFAULT_ADMIN_EMAILS = [
   'brent.streamlinedigital@gmail.com',
   'selwynw@cchestpe.org.za',
-  'colette@cchestpe.org.za'
+  'colette@cchestpe.org.za',
+  'Colettep@cchestpe.org.za'
 ];
 
 // Helper to log transaction row to Google Sheets
@@ -136,8 +137,12 @@ export async function sendEmails({ name, email, phone, amount, tickets, paymentI
 
   // Gather configured admin recipient emails
   const adminRecipients = [];
+  if (process.env.ADMIN_EMAILS) {
+    adminRecipients.push(...process.env.ADMIN_EMAILS.split(',').map(e => e.trim()).filter(Boolean));
+  }
   if (process.env.ADMIN_EMAIL_USER) adminRecipients.push(process.env.ADMIN_EMAIL_USER);
   if (process.env.ADMIN_EMAIL_COLETTE) adminRecipients.push(process.env.ADMIN_EMAIL_COLETTE);
+  if (process.env.ADMIN_EMAIL_COLETTEP) adminRecipients.push(process.env.ADMIN_EMAIL_COLETTEP);
   if (process.env.ADMIN_EMAIL_SELWYN) adminRecipients.push(process.env.ADMIN_EMAIL_SELWYN);
 
   // If none set in env, use default emails
