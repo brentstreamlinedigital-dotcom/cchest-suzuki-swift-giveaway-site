@@ -6,8 +6,7 @@ export const DEFAULT_SPREADSHEET_ID = '1MsSIsNoDCjRtHBgCQ4zKMzf89KXD1hBbBXjSqxbz
 export const DEFAULT_ADMIN_EMAILS = [
   'brent.streamlinedigital@gmail.com',
   'selwynw@cchestpe.org.za',
-  'colette@cchestpe.org.za',
-  'Colettep@cchestpe.org.za'
+  'colettep@cchestpe.org.za'
 ];
 
 // Helper to log transaction row to Google Sheets
@@ -68,7 +67,7 @@ export async function logToGoogleSheets(data) {
 }
 
 // Helper to send customer receipt & admin emails via Resend
-export async function sendEmails({ name, email, phone, amount, tickets, paymentId }) {
+export async function sendEmails({ name, email, phone, amount, tickets, paymentId, customRecipients }) {
   if (!process.env.RESEND_API_KEY) {
     console.warn('Resend email API key not configured. Dispatches skipped.');
     return;
@@ -122,42 +121,67 @@ export async function sendEmails({ name, email, phone, amount, tickets, paymentI
     </div>
   `;
 
-  // Send receipt email to buyer
-  try {
-    await resend.emails.send({
-      from: `CCEC Suzuki Swift Raffle <${senderEmail}>`,
-      to: email,
-      subject: 'Your Suzuki Swift Raffle Ticket Receipt',
-      html: buyerHtml,
-    });
-    console.log('Customer receipt email sent successfully to:', email);
-  } catch (err) {
-    console.error('Failed to send buyer receipt email:', err);
+  // Send receipt email to buyer (if valid buyer email provided)
+  if (email && email.includes('@')) {
+    try {
+      await resend.emails.send({
+        from: `CCEC Suzuki Swift Raffle <${senderEmail}>`,
+        to: email,
+        subject: 'Your Suzuki Swift Raffle Ticket Receipt',
+        html: buyerHtml,
+      });
+      console.log('Customer receipt email sent successfully to:', email);
+    } catch (err) {
+      console.error('Failed to send buyer receipt email:', err);
+    }
   }
 
   // Gather configured admin recipient emails
-  const adminRecipients = [];
-  if (process.env.ADMIN_EMAILS) {
-    adminRecipients.push(...process.env.ADMIN_EMAILS.split(',').map(e => e.trim()).filter(Boolean));
-  }
-  if (process.env.ADMIN_EMAIL_USER) adminRecipients.push(process.env.ADMIN_EMAIL_USER);
-  if (process.env.ADMIN_EMAIL_COLETTE) adminRecipients.push(process.env.ADMIN_EMAIL_COLETTE);
-  if (process.env.ADMIN_EMAIL_COLETTEP) adminRecipients.push(process.env.ADMIN_EMAIL_COLETTEP);
-  if (process.env.ADMIN_EMAIL_SELWYN) adminRecipients.push(process.env.ADMIN_EMAIL_SELWYN);
+  let targetAdmins = [];
+  if (customRecipients && Array.isArray(customRecipients) && customRecipients.length > 0) {
+    targetAdmins = customRecipients;
+  } else {
+    const rawList = [...DEFAULT_ADMIN_EMAILS];
+    if (process.env.ADMIN_EMAILS) {
+      rawList.push(...process.env.ADMIN_EMAILS.split(','));
+    }
+    if (process.env.ADMIN_EMAIL_USER) rawList.push(process.env.ADMIN_EMAIL_USER);
+    if (process.env.ADMIN_EMAIL_COLETTE) rawList.push(process.env.ADMIN_EMAIL_COLETTE);
+    if (process.env.ADMIN_EMAIL_COLETTEP) rawList.push(process.env.ADMIN_EMAIL_COLETTEP);
+    if (process.env.ADMIN_EMAIL_SELWYN) rawList.push(process.env.ADMIN_EMAIL_SELWYN);
 
-  // If none set in env, use default emails
-  const finalAdmins = adminRecipients.length > 0 ? adminRecipients : DEFAULT_ADMIN_EMAILS;
-
-  // Send admin notification emails
-  try {
-    await resend.emails.send({
-      from: `CCEC Raffle Notifications <${senderEmail}>`,
-      to: finalAdmins,
-      subject: `New Raffle Entry: ${name} (R${amount})`,
-      html: adminHtml,
-    });
-    console.log('Admin notification emails sent to:', finalAdmins);
-  } catch (err) {
-    console.error('Failed to send admin notification emails:', err);
+    targetAdmins = rawList;
   }
+
+  // Sanitize, normalize, fix typos, and deduplicate email addresses
+  const sanitizedAdmins = Array.from(new Set(
+    targetAdmins
+      .map(e => String(e).trim().toLowerCase())
+      .map(e => e === 'colette@cchestpe.org.za' ? 'colettep@cchestpe.org.za' : e)
+      .filter(e => e && e.includes('@'))
+  ));
+
+  console.log('Sending admin notification emails individually to:', sanitizedAdmins);
+
+  // Send admin notification emails individually to prevent single-recipient failure blocking others
+  const results = await Promise.allSettled(
+    sanitizedAdmins.map(async (adminEmail) => {
+      try {
+        const response = await resend.emails.send({
+          from: `CCEC Raffle Notifications <${senderEmail}>`,
+          to: adminEmail,
+          subject: `New Raffle Entry: ${name} (R${amount})`,
+          html: adminHtml,
+        });
+        console.log(`Admin notification email sent successfully to ${adminEmail}`, response);
+        return { email: adminEmail, status: 'fulfilled', response };
+      } catch (err) {
+        console.error(`Error sending admin notification email to ${adminEmail}:`, err);
+        throw err;
+      }
+    })
+  );
+
+  return results;
 }
+
