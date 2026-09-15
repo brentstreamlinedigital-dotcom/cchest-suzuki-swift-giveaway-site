@@ -92,9 +92,11 @@ document.addEventListener('DOMContentLoaded', () => {
     window.history.replaceState({}, document.title, window.location.pathname);
   }
 
-  // Fetch genuine ticket counter from Google Sheets API
+  // Fetch genuine ticket counter from Google Sheets API (Base count: 30)
   async function loadGenuineTicketCount() {
     if (!statsTotalEntries) return;
+
+    const MIN_BASE_COUNT = 30;
 
     try {
       const response = await fetch('/api/tickets-count');
@@ -102,19 +104,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const data = await response.json();
       if (data && typeof data.count === 'number') {
-        animateCounter(statsTotalEntries, data.count);
+        const finalCount = Math.max(MIN_BASE_COUNT, data.count);
+        animateCounter(statsTotalEntries, finalCount);
+      } else {
+        animateCounter(statsTotalEntries, MIN_BASE_COUNT);
       }
     } catch (err) {
-      console.warn('Could not fetch live ticket count:', err);
+      console.warn('Could not fetch live ticket count, defaulting to base 30:', err);
+      animateCounter(statsTotalEntries, MIN_BASE_COUNT);
     }
   }
 
   // Smooth counter animation function
   function animateCounter(element, target) {
-    if (target <= 0) {
-      element.textContent = '0';
-      return;
-    }
+    const finalTarget = Math.max(30, target || 0);
 
     const duration = 1500;
     const startTime = performance.now();
@@ -123,14 +126,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const elapsedTime = currentTime - startTime;
       const progress = Math.min(elapsedTime / duration, 1);
       const easeProgress = 1 - Math.pow(1 - progress, 3);
-      const currentVal = Math.floor(target * easeProgress);
+      const currentVal = Math.floor(finalTarget * easeProgress);
 
       element.textContent = currentVal.toLocaleString();
 
       if (progress < 1) {
         requestAnimationFrame(step);
       } else {
-        element.textContent = target.toLocaleString();
+        element.textContent = finalTarget.toLocaleString();
       }
     }
 

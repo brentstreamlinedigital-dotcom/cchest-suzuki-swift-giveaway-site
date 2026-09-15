@@ -1,6 +1,7 @@
 import { google } from 'googleapis';
 import { DEFAULT_SPREADSHEET_ID } from './helpers.js';
 
+export const DEFAULT_BASE_COUNT = 30;
 export const PUBLISHED_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSItV5BarzKpjqRObkLg0OoSwsv1wQ4a_bJsQycheSDr9Ktd5cq3gZCFPTuAdNqiYkNw6CsW5NNpvyF/pub?output=csv';
 
 function parseCSV(text) {
@@ -30,6 +31,43 @@ function parseCSV(text) {
   return rows;
 }
 
+function processRows(rows) {
+  let sheetTickets = 0;
+  let validRowCount = 0;
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const firstCol = String(row[0] || '').toLowerCase();
+
+    // Skip header row
+    if (i === 0 && (firstCol.includes('date') || firstCol.includes('time') || firstCol.includes('id') || firstCol.includes('name') || firstCol.includes('timestamp'))) {
+      continue;
+    }
+
+    const ticketsCol = row[6] || row[5] || '';
+    const statusCol = String(row[7] || row[6] || '').toLowerCase();
+
+    if (statusCol.includes('cancel') || statusCol.includes('fail') || statusCol.includes('refund')) continue;
+
+    validRowCount++;
+    let rowTickets = 1;
+
+    if (ticketsCol) {
+      const str = String(ticketsCol).replace(/^"|"$/g, '').trim();
+      if (str.includes(',')) {
+        const list = str.split(',').map(t => t.trim()).filter(Boolean);
+        rowTickets = Math.max(1, list.length);
+      } else if (!isNaN(Number(str)) && Number(str) > 0) {
+        rowTickets = parseInt(str, 10);
+      }
+    }
+
+    sheetTickets += rowTickets;
+  }
+
+  return { sheetTickets, validRowCount };
+}
+
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
 
@@ -39,6 +77,7 @@ export default async function handler(req, res) {
   const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || '';
 
   const diagnostics = {
+    baseCount: DEFAULT_BASE_COUNT,
     spreadsheetId,
     publishedUrl,
     hasWebappUrl: !!webappUrl,
@@ -52,64 +91,79 @@ export default async function handler(req, res) {
     const csvRes = await fetch(publishedUrl);
     if (csvRes.ok) {
       const csvText = await csvRes.text();
-      const rows = parseCSV(csvText);
+      // Verify not Google Sign-In HTML page
+      if (!csvText.includes('<html') && !csvText.includes('<!DOCTYPE')) {
+        const rows = parseCSV(csvText);
+        const { sheetTickets, validRowCount } = processRows(rows);
 
-      diagnostics.attempts.push({
-        method: 'published-csv',
-        totalRows: rows.length,
-        rawCsvLength: csvText.length,
-        sampleRows: rows.slice(0, 5)
-      });
-
-      let totalTickets = 0;
-      let validRowCount = 0;
-
-      for (let i = 0; i < rows.length; i++) {
-        const row = rows[i];
-        const firstCol = String(row[0] || '').toLowerCase();
-
-        // Skip header
-        if (i === 0 && (firstCol.includes('date') || firstCol.includes('time') || firstCol.includes('id') || firstCol.includes('name') || firstCol.includes('timestamp'))) {
-          continue;
-        }
-
-        const ticketsCol = row[6] || row[5] || '';
-        const statusCol = String(row[7] || row[6] || '').toLowerCase();
-
-        if (statusCol.includes('cancel') || statusCol.includes('fail')) continue;
-
-        validRowCount++;
-        let rowTickets = 1;
-
-        if (ticketsCol) {
-          const str = String(ticketsCol).replace(/^"|"$/g, '').trim();
-          if (str.includes(',')) {
-            const list = str.split(',').map(t => t.trim()).filter(Boolean);
-            rowTickets = Math.max(1, list.length);
-          } else if (!isNaN(Number(str)) && Number(str) > 0) {
-            rowTickets = parseInt(str, 10);
-          }
-        }
-
-        totalTickets += rowTickets;
-      }
-
-      if (rows.length > 0) {
-        return res.status(200).json({
-          success: true,
-          count: totalTickets,
-          countFormatted: totalTickets.toLocaleString(),
-          rowsCount: validRowCount,
-          source: 'published-csv',
-          diagnostics
+        diagnostics.attempts.push({
+          method: 'published-csv',
+          totalRows: rows.length,
+          rawCsvLength: csvText.length,
+          validEntries: validRowCount,
+          sheetTickets
         });
+
+        if (rows.length > 0) {
+          const totalCount = DEFAULT_BASE_COUNT + sheetTickets;
+          return res.status(200).json({
+            success: true,
+            baseCount: DEFAULT_BASE_COUNT,
+            sheetCount: sheetTickets,
+            count: totalCount,
+            countFormatted: totalCount.toLocaleString(),
+            rowsCount: validRowCount,
+            source: 'published-csv',
+            diagnostics
+          });
+        }
+      } else {
+        diagnostics.attempts.push({ method: 'published-csv', error: 'Received HTML response (access restricted)' });
       }
     }
   } catch (err) {
     diagnostics.attempts.push({ method: 'published-csv', error: err.message });
   }
 
-  // 2. Try Google Sheets API via Service Account (if configured in env)
+  // 2. Try Direct Google Sheet Export CSV URL
+  try {
+    const exportUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv`;
+    const exportRes = await fetch(exportUrl);
+    if (exportRes.ok) {
+      const exportText = await exportRes.text();
+      if (!exportText.includes('<html') && !exportText.includes('<!DOCTYPE')) {
+        const rows = parseCSV(exportText);
+        const { sheetTickets, validRowCount } = processRows(rows);
+
+        diagnostics.attempts.push({
+          method: 'direct-csv-export',
+          totalRows: rows.length,
+          validEntries: validRowCount,
+          sheetTickets
+        });
+
+        if (rows.length > 0) {
+          const totalCount = DEFAULT_BASE_COUNT + sheetTickets;
+          return res.status(200).json({
+            success: true,
+            baseCount: DEFAULT_BASE_COUNT,
+            sheetCount: sheetTickets,
+            count: totalCount,
+            countFormatted: totalCount.toLocaleString(),
+            rowsCount: validRowCount,
+            source: 'direct-csv-export',
+            diagnostics
+          });
+        }
+      } else {
+        diagnostics.attempts.push({ method: 'direct-csv-export', error: 'Received HTML response (requires login or permission)' });
+      }
+    }
+  } catch (err) {
+    diagnostics.attempts.push({ method: 'direct-csv-export', error: err.message });
+  }
+
+  // 3. Try Google Sheets API via Service Account (if configured in env)
   if (serviceAccountEmail && process.env.GOOGLE_PRIVATE_KEY) {
     try {
       const auth = new google.auth.JWT(
@@ -131,48 +185,23 @@ export default async function handler(req, res) {
       });
 
       const allRows = sheetsRes.data.values || [];
-      let totalTickets = 0;
-      let validRowCount = 0;
-
-      for (let i = 0; i < allRows.length; i++) {
-        const row = allRows[i];
-        const firstCol = String(row[0] || '').toLowerCase();
-        
-        if (i === 0 && (firstCol.includes('date') || firstCol.includes('time') || firstCol.includes('id') || firstCol.includes('name'))) {
-          continue;
-        }
-
-        const ticketsCol = row[6] || row[5] || '';
-        const statusCol = String(row[7] || row[6] || '').toLowerCase();
-
-        if (statusCol.includes('cancel') || statusCol.includes('fail')) continue;
-
-        validRowCount++;
-        let rowTickets = 1;
-        if (ticketsCol) {
-          const str = String(ticketsCol).trim();
-          if (str.includes(',')) {
-            const list = str.split(',').map(t => t.trim()).filter(Boolean);
-            rowTickets = Math.max(1, list.length);
-          } else if (!isNaN(Number(str)) && Number(str) > 0) {
-            rowTickets = parseInt(str, 10);
-          }
-        }
-
-        totalTickets += rowTickets;
-      }
+      const { sheetTickets, validRowCount } = processRows(allRows);
 
       diagnostics.attempts.push({
         method: 'sheets-api',
         sheetTabs,
         totalRows: allRows.length,
-        validEntries: validRowCount
+        validEntries: validRowCount,
+        sheetTickets
       });
 
+      const totalCount = DEFAULT_BASE_COUNT + sheetTickets;
       return res.status(200).json({
         success: true,
-        count: totalTickets,
-        countFormatted: totalTickets.toLocaleString(),
+        baseCount: DEFAULT_BASE_COUNT,
+        sheetCount: sheetTickets,
+        count: totalCount,
+        countFormatted: totalCount.toLocaleString(),
         rowsCount: validRowCount,
         source: 'sheets-api',
         diagnostics
@@ -182,7 +211,7 @@ export default async function handler(req, res) {
     }
   }
 
-  // 3. Try Apps Script Web App GET (if configured in env)
+  // 4. Try Apps Script Web App GET (if configured in env)
   if (webappUrl) {
     try {
       const getUrl = `${webappUrl}?action=getTicketsCount&t=${Date.now()}`;
@@ -190,10 +219,14 @@ export default async function handler(req, res) {
       const appScriptData = await appScriptRes.json();
 
       if (appScriptData && typeof appScriptData.count === 'number') {
+        const sheetTickets = appScriptData.count;
+        const totalCount = DEFAULT_BASE_COUNT + sheetTickets;
         return res.status(200).json({
           success: true,
-          count: appScriptData.count,
-          countFormatted: appScriptData.count.toLocaleString(),
+          baseCount: DEFAULT_BASE_COUNT,
+          sheetCount: sheetTickets,
+          count: totalCount,
+          countFormatted: totalCount.toLocaleString(),
           source: 'webapp-url',
           diagnostics
         });
@@ -203,7 +236,7 @@ export default async function handler(req, res) {
     }
   }
 
-  // 4. Try Google gviz endpoint (for public / shared Google Sheets)
+  // 5. Try Google gviz endpoint (for public / shared Google Sheets)
   try {
     const gvizUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json`;
     const response = await fetch(gvizUrl);
@@ -216,13 +249,7 @@ export default async function handler(req, res) {
         const data = JSON.parse(jsonMatch[1]);
         const rows = data.table?.rows || [];
 
-        diagnostics.attempts.push({
-          method: 'gviz',
-          colsCount: data.table?.cols?.length || 0,
-          rowsCount: rows.length
-        });
-
-        let totalTickets = 0;
+        let sheetTickets = 0;
         let validRowCount = 0;
 
         for (const row of rows) {
@@ -233,7 +260,7 @@ export default async function handler(req, res) {
           const ticketsCell = cells[6]?.v || cells[6]?.f || '';
           const statusCell = String(cells[7]?.v || cells[7]?.f || '').toLowerCase();
 
-          if (statusCell.includes('cancel') || statusCell.includes('fail')) continue;
+          if (statusCell.includes('cancel') || statusCell.includes('fail') || statusCell.includes('refund')) continue;
 
           validRowCount++;
 
@@ -241,21 +268,32 @@ export default async function handler(req, res) {
             const ticketStr = String(ticketsCell).trim();
             if (ticketStr.includes(',')) {
               const ticketList = ticketStr.split(',').map(t => t.trim()).filter(Boolean);
-              totalTickets += Math.max(1, ticketList.length);
+              sheetTickets += Math.max(1, ticketList.length);
             } else if (!isNaN(Number(ticketStr)) && Number(ticketStr) > 0) {
-              totalTickets += parseInt(ticketStr, 10);
+              sheetTickets += parseInt(ticketStr, 10);
             } else {
-              totalTickets += 1;
+              sheetTickets += 1;
             }
           } else {
-            totalTickets += 1;
+            sheetTickets += 1;
           }
         }
 
+        diagnostics.attempts.push({
+          method: 'gviz',
+          colsCount: data.table?.cols?.length || 0,
+          rowsCount: rows.length,
+          validEntries: validRowCount,
+          sheetTickets
+        });
+
+        const totalCount = DEFAULT_BASE_COUNT + sheetTickets;
         return res.status(200).json({
           success: true,
-          count: totalTickets,
-          countFormatted: totalTickets.toLocaleString(),
+          baseCount: DEFAULT_BASE_COUNT,
+          sheetCount: sheetTickets,
+          count: totalCount,
+          countFormatted: totalCount.toLocaleString(),
           rowsCount: validRowCount,
           source: 'gviz',
           diagnostics
@@ -266,12 +304,16 @@ export default async function handler(req, res) {
     diagnostics.attempts.push({ method: 'gviz', error: err.message });
   }
 
+  // Fallback: return baseline count of 30 if spreadsheet fetch fails or returns 0 sheet entries
   return res.status(200).json({
-    success: false,
-    count: 0,
-    countFormatted: '0',
+    success: true,
+    baseCount: DEFAULT_BASE_COUNT,
+    sheetCount: 0,
+    count: DEFAULT_BASE_COUNT,
+    countFormatted: DEFAULT_BASE_COUNT.toLocaleString(),
     rowsCount: 0,
-    source: 'none',
+    source: 'fallback-base',
     diagnostics
   });
 }
+
