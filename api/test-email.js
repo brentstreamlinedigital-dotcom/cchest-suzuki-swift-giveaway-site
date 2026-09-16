@@ -2,7 +2,7 @@ import { sendEmails } from './helpers.js';
 
 export default async function handler(req, res) {
   try {
-    const defaultTestRecipients = ['colettep@cchestpe.org.za', 'brent.streamlinedigital@gmail.com'];
+    const defaultTestRecipients = ['colettep@cchest.org.za', 'brent.streamlinedigital@gmail.com'];
     
     // Allow recipient query parameter if provided, otherwise default to requested recipients
     const recipientQuery = req.query?.email;

@@ -6,7 +6,7 @@ export const DEFAULT_SPREADSHEET_ID = '1MsSIsNoDCjRtHBgCQ4zKMzf89KXD1hBbBXjSqxbz
 export const DEFAULT_ADMIN_EMAILS = [
   'brent.streamlinedigital@gmail.com',
   'selwynw@cchestpe.org.za',
-  'colettep@cchestpe.org.za'
+  'colettep@cchest.org.za'
 ];
 
 // Helper to log transaction row to Google Sheets
@@ -157,7 +157,7 @@ export async function sendEmails({ name, email, phone, amount, tickets, paymentI
   const sanitizedAdmins = Array.from(new Set(
     targetAdmins
       .map(e => String(e).trim().toLowerCase())
-      .map(e => e === 'colette@cchestpe.org.za' ? 'colettep@cchestpe.org.za' : e)
+      .map(e => (e === 'colette@cchestpe.org.za' || e === 'colettep@cchestpe.org.za' || e === 'colette@cchest.org.za') ? 'colettep@cchest.org.za' : e)
       .filter(e => e && e.includes('@'))
   ));
 
