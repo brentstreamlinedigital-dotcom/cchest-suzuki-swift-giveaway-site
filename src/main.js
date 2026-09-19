@@ -336,12 +336,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       // Dynamically create a form and submit it to redirect to Payfast
-      // target="_blank" ensures PayFast opens in a new tab, breaking out of
-      // any parent iframe (e.g. Framer embed) that would block PayFast's anti-iframe policy
+      // target="_top" ensures PayFast opens in the main browser window (breaking out of
+      // any parent iframe like Framer embeds while staying in the main tab, which is
+      // essential for 3DSecure 2.0 banking OTP/App authentication on mobile devices).
       const payfastForm = document.createElement('form');
       payfastForm.method = 'POST';
       payfastForm.action = checkoutData.url;
-      payfastForm.target = '_blank';
+      payfastForm.target = '_top';
 
       Object.keys(checkoutData.fields).forEach(key => {
         const input = document.createElement('input');
