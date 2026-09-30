@@ -74,7 +74,11 @@ export async function sendEmails({ name, email, phone, amount, tickets, paymentI
   }
 
   const resend = new Resend(process.env.RESEND_API_KEY);
-  const senderEmail = process.env.SENDER_EMAIL || 'onboarding@resend.dev';
+  const rawSender = (process.env.SENDER_EMAIL || 'onboarding@resend.dev').trim();
+  // Extract email address cleanly in case SENDER_EMAIL contains "Name <email@domain.com>"
+  const emailMatch = rawSender.match(/<([^>]+)>/);
+  const cleanSenderEmail = emailMatch ? emailMatch[1] : rawSender;
+  const fromHeader = `Community Chest Raffle <${cleanSenderEmail}>`;
 
   // Buyer Receipt HTML
   const buyerHtml = `
@@ -125,7 +129,7 @@ export async function sendEmails({ name, email, phone, amount, tickets, paymentI
   if (email && email.includes('@')) {
     try {
       await resend.emails.send({
-        from: `CCEC Suzuki Swift Raffle <${senderEmail}>`,
+        from: fromHeader,
         to: email,
         subject: 'Your Suzuki Swift Raffle Ticket Receipt',
         html: buyerHtml,
@@ -168,7 +172,7 @@ export async function sendEmails({ name, email, phone, amount, tickets, paymentI
     sanitizedAdmins.map(async (adminEmail) => {
       try {
         const response = await resend.emails.send({
-          from: `CCEC Raffle Notifications <${senderEmail}>`,
+          from: fromHeader,
           to: adminEmail,
           subject: `New Raffle Entry: ${name} (R${amount})`,
           html: adminHtml,
